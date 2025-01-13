@@ -9,5 +9,5 @@ Tasks performed in this system
 4. Borrow book - POST /library/borrow
 5. Return book - POST /library/return
 
-Use the below link to access the OpenAPI Swagger UI interface to test the endpoints
+Use the link to access the OpenAPI Swagger UI interface to test the endpoints
 http://localhost:8080/swagger-ui/index.html
