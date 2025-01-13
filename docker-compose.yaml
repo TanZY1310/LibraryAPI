@@ -1,0 +1,40 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      mysqldb:
+        condition: 'service_healthy'
+    environment:
+      - 'SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/libraryapi'
+      - 'SPRING_DATASOURCE_USERNAME=user1'
+      - 'SPRING_DATASOURCE_PASSWORD=password123*'
+      - 'SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver'
+      - 'SPRING_JPA_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect'
+    networks:
+      - 'springboot-mysql-network'
+  mysqldb:
+    container_name: 'library-mysql'
+    image: 'mysql:8.0.33'
+    environment:
+      - 'MYSQL_DATABASE=libraryapi'
+      - 'MYSQL_PASSWORD=password123*'
+      - 'MYSQL_ROOT_PASSWORD=admin'
+      - 'MYSQL_USER=user1'
+    ports:
+      - '3306:3306'
+    networks:
+      - 'springboot-mysql-network'
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      retries: 10
+      interval: 3s
+      timeout: 30s
+volumes:
+  mysql-data:
+networks:
+  springboot-mysql-network:
+    name: springboot-mysql-network
