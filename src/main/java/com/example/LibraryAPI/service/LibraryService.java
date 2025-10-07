@@ -1,23 +1,12 @@
 package com.example.LibraryAPI.service;
 
-import com.example.LibraryAPI.model.Book;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 public class LibraryService implements ILibraryService {
-
-    @Override
-    public Boolean validateTitleAuthor(Book bookFound, String title, String author) {
-
-        if (bookFound.getTitle().equals(title) && bookFound.getAuthor().equals(author))  {
-            return Boolean.TRUE;
-        }
-        return Boolean.FALSE;
-    }
 
     @Override
     public Boolean isISBNValid(String isbn) {

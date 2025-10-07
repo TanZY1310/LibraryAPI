@@ -2,7 +2,6 @@ package com.example.LibraryAPI.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import java.io.Serializable;
 import java.util.List;
 
 @Entity

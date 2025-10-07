@@ -36,16 +36,25 @@ public class LibraryController {
 
         //Email validation
         Boolean isEmailValid = libraryService.isEmailValid(email);
-
         if (!isEmailValid) {
             return ResponseEntity.badRequest().body("Email invalid");
+        }
+
+        //Check for duplicate email or name
+        Borrower borrowerByEmail = borrowerRepository.findByEmail(email);
+        if (borrowerByEmail != null) {
+            return ResponseEntity.badRequest().body("Email has been registered");
+        }
+
+        Borrower borrowerByName = borrowerRepository.findByName(name);
+        if (borrowerByName != null) {
+            return ResponseEntity.badRequest().body("Name has been registered");
         }
 
         Borrower borrower = new Borrower();
         borrower.setName(name);
         borrower.setEmail(email);
         borrowerRepository.save(borrower);
-        displayAllBorrowers();
         return ResponseEntity.ok().body("New Borrower registered");
     }
 
@@ -71,13 +80,8 @@ public class LibraryController {
 
         List<Book> bookList = bookRepository.findByIsbn(isbn);
 
-        //Same title, same author, different isbn => different books
-        //If isbn is the same, check if title and author is the same
         if (!CollectionUtils.isEmpty(bookList)) {
-            Boolean isValid = libraryService.validateTitleAuthor(bookList.get(0), title, author);
-            if (!isValid) {
-                return ResponseEntity.badRequest().body("Same ISBN invalid info detected");
-            }
+            return ResponseEntity.badRequest().body("Same ISBN already registered");
         }
 
         Book book = new Book();

@@ -6,6 +6,8 @@ async function registerBorrower() {
     });
     displayAllBorrowers();
     alert(await response.text());
+    document.getElementById('borrowerName').value = '';
+    document.getElementById('borrowerEmail').value = '';
 }
 
 async function registerBook() {
@@ -17,6 +19,9 @@ async function registerBook() {
     });
     displayAllBooks();
     alert(await response.text());
+    document.getElementById('isbn').value = '';
+    document.getElementById('title').value = '';
+    document.getElementById('author').value = '';
 }
 
 let borrowerTable, bookTable;
