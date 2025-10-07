@@ -1,5 +1,6 @@
 package com.example.LibraryAPI.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -20,6 +21,11 @@ public class Book {
 
     @Column(name = "isBorrowed")
     private Boolean isBorrowed;
+
+    @ManyToOne
+    @JoinColumn(name = "borrower_id")
+    @JsonManagedReference
+    private Borrower borrower;
 
     public int getId() {
         return id;
@@ -61,4 +67,11 @@ public class Book {
         isBorrowed = borrowed;
     }
 
+    public Borrower getBorrower() {
+        return borrower;
+    }
+
+    public void setBorrower(Borrower borrower) {
+        this.borrower = borrower;
+    }
 }

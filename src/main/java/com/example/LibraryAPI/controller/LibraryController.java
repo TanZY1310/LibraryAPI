@@ -45,7 +45,14 @@ public class LibraryController {
         borrower.setName(name);
         borrower.setEmail(email);
         borrowerRepository.save(borrower);
+        displayAllBorrowers();
         return ResponseEntity.ok().body("New Borrower registered");
+    }
+
+    //Get a list of all the books in the library
+    @GetMapping(path = "/borrower/all")
+    public @ResponseBody Iterable<Borrower> displayAllBorrowers() {
+        return borrowerRepository.findAll();
     }
 
     //Register a new book to the library
@@ -78,13 +85,14 @@ public class LibraryController {
         book.setTitle(title);
         book.setAuthor(author);
         book.setBorrowed(Boolean.FALSE);
+        book.setBorrower(null);
         bookRepository.save(book);
 
         return ResponseEntity.ok().body("New Book registered");
     }
 
     //Get a list of all the books in the library
-    @GetMapping(path = "/all")
+    @GetMapping(path = "/book/all")
     public @ResponseBody Iterable<Book> displayAllBooks() {
         return bookRepository.findAll();
     }
@@ -92,68 +100,82 @@ public class LibraryController {
     @PostMapping(path = "/borrow")
     public ResponseEntity<String> borrowBook(@RequestParam(required = false) String isbn, @RequestParam(required = false) String borrowerName) {
 
-        if (StringUtils.isEmpty(isbn) || StringUtils.isEmpty(borrowerName)) {
-            return ResponseEntity.badRequest().body("Please fill in all necessary information");
-        }
-
-        Borrower borrower = borrowerRepository.findByName(borrowerName);
-        if (borrower == null) {
-            return ResponseEntity.badRequest().body("Borrower is not registered in this library.");
-        }
-
-        List<Book> bookList = bookRepository.findByIsbn(isbn);
-        if (CollectionUtils.isEmpty(bookList)) {
-            return ResponseEntity.badRequest().body("Book not found.");
-        }
-
-        Book book = null;
-        //Loop to check through borrowed books and obtain book that is not borrowed
-        for (Book eachBook : bookList) {
-            if (eachBook.getBorrowed().equals(Boolean.FALSE)) {
-                book = eachBook;
-                break;
+        // Add try-catch block to handle errors
+        try{
+            if (StringUtils.isEmpty(isbn) || StringUtils.isEmpty(borrowerName)) {
+                return ResponseEntity.badRequest().body("Please fill in all necessary information");
             }
+
+            Borrower borrower = borrowerRepository.findByName(borrowerName);
+            if (borrower == null) {
+                return ResponseEntity.badRequest().body("Borrower is not registered in this library.");
+            }
+
+            List<Book> bookList = bookRepository.findByIsbn(isbn);
+            if (CollectionUtils.isEmpty(bookList)) {
+                return ResponseEntity.badRequest().body("Book not found.");
+            }
+
+            Book book = null;
+            //Loop to check through borrowed books and obtain book that is not borrowed
+            for (Book eachBook : bookList) {
+                if (eachBook.getBorrowed().equals(Boolean.FALSE)) {
+                    book = eachBook;
+                    break;
+                }
+            }
+
+            if (book == null) {
+                return ResponseEntity.badRequest().body("Book has been borrowed");
+            }
+
+            book.setBorrowed(Boolean.TRUE);
+            book.setBorrower(borrower);
+            bookRepository.save(book);
+            return ResponseEntity.ok("Book borrowed successfully.");
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred while processing borrow request");
         }
 
-        if (book == null) {
-            return ResponseEntity.badRequest().body("Book has been borrowed");
-        }
-
-        book.setBorrowed(Boolean.TRUE);
-        bookRepository.save(book);
-        return ResponseEntity.ok("Book borrowed successfully.");
     }
 
     @PostMapping(path = "/return")
     public ResponseEntity<String> returnBook(@RequestParam(required = false) String isbn, @RequestParam(required = false) String borrowerName) {
 
-        if (StringUtils.isEmpty(isbn) || StringUtils.isEmpty(borrowerName)) {
-            return ResponseEntity.badRequest().body("Please fill in all necessary information");
-        }
-
-        Borrower borrower = borrowerRepository.findByName(borrowerName);
-        if (borrower == null) {
-            return ResponseEntity.badRequest().body("Borrower is not registered in this library.");
-        }
-
-        List<Book> bookList = bookRepository.findByIsbn(isbn);
-        if (CollectionUtils.isEmpty(bookList)) {
-            return ResponseEntity.badRequest().body("Book not found.");
-        }
-
-        Book book = null;
-        for (Book eachBook : bookList) {
-            if (eachBook.getBorrowed().equals(Boolean.TRUE)) {
-                book = eachBook;
-                break;
+        try {
+            if (StringUtils.isEmpty(isbn) || StringUtils.isEmpty(borrowerName)) {
+                return ResponseEntity.badRequest().body("Please fill in all necessary information");
             }
-        }
-        if (book == null) {
-            return ResponseEntity.badRequest().body("Unable to return book that is not borrowed.");
-        }
 
-        book.setBorrowed(Boolean.FALSE);
-        bookRepository.save(book);
-        return ResponseEntity.ok("Book returned successfully.");
+            Borrower borrower = borrowerRepository.findByName(borrowerName);
+            if (borrower == null) {
+                return ResponseEntity.badRequest().body("Borrower is not registered in this library.");
+            }
+
+            List<Book> bookList = bookRepository.findByIsbn(isbn);
+            if (CollectionUtils.isEmpty(bookList)) {
+                return ResponseEntity.badRequest().body("Book not found.");
+            }
+
+            Book book = null;
+            for (Book eachBook : bookList) {
+                if (eachBook.getBorrowed().equals(Boolean.TRUE)) {
+                    book = eachBook;
+                    break;
+                }
+            }
+            if (book == null) {
+                return ResponseEntity.badRequest().body("Unable to return book that is not borrowed.");
+            }
+
+            book.setBorrowed(Boolean.FALSE);
+            book.setBorrower(null);
+            bookRepository.save(book);
+            return ResponseEntity.ok("Book returned successfully.");
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred while processing return request");
+        }
     }
 }
