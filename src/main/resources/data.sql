@@ -15,7 +15,7 @@ INSERT INTO book (isbn, title, author, is_borrowed, borrower_id) VALUES
 ('9780345803481', 'Fifty Shades of Grey', 'E.L. James', false, NULL),
 ('9780385737951', 'Looking for Alaska', 'John Green', false, NULL),
 ('9780374533557', 'The Kite Runner', 'Khaled Hosseini', false, NULL),
-('9780062315007', 'The Subtle Art of Not Giving a F*ck', 'Mark Manson', false, NULL),
+('9780062315007', 'The Subtle Art of Not Giving a Flip', 'Mark Manson', false, NULL),
 ('9780452284234', 'Life of Pi', 'Yann Martel', false, NULL),
 ('9780142424179', 'The Fault in Our Stars', 'John Green', false, NULL),
 ('9780385490818', 'Angels & Demons', 'Dan Brown', false, NULL);

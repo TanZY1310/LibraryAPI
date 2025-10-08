@@ -58,6 +58,27 @@ public class LibraryController {
         return ResponseEntity.ok().body("New Borrower registered");
     }
 
+    @PostMapping(path="/deleteBorrower")
+    public ResponseEntity<String> deleteBorrower(@RequestParam(required = false) String name) {
+        try {
+            Borrower borrower = borrowerRepository.findByName(name);
+            if (borrower == null) {
+                return ResponseEntity.badRequest().body("Borrower not found");
+            }
+
+            List<Book> borrowedBooks = bookRepository.findByBorrower(borrower);
+            if (!CollectionUtils.isEmpty(borrowedBooks)) {
+                return ResponseEntity.badRequest().body("Cannot delete borrower with borrowed books");
+            }
+            borrowerRepository.delete(borrower);
+
+            return ResponseEntity.ok().body("Borrower deleted");
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred while processing delete request");
+        }
+    }
+
     //Get a list of all the books in the library
     @GetMapping(path = "/borrower/all")
     public @ResponseBody Iterable<Borrower> displayAllBorrowers() {
@@ -78,9 +99,8 @@ public class LibraryController {
             return ResponseEntity.badRequest().body("ISBN invalid");
         }
 
-        List<Book> bookList = bookRepository.findByIsbn(isbn);
-
-        if (!CollectionUtils.isEmpty(bookList)) {
+        Book bookByIsbn = bookRepository.findByIsbn(isbn);
+        if (bookByIsbn != null) {
             return ResponseEntity.badRequest().body("Same ISBN already registered");
         }
 
@@ -95,6 +115,24 @@ public class LibraryController {
         return ResponseEntity.ok().body("New Book registered");
     }
 
+    @PostMapping(path="/deleteBook")
+    public ResponseEntity<String> deleteBook(@RequestParam(required = false) String isbn) {
+        try {
+            Book bookByIsbn = bookRepository.findByIsbn(isbn);
+            if (bookByIsbn == null) {
+                return ResponseEntity.badRequest().body("Book not found");
+            }
+            if (bookByIsbn.getBorrowed().equals(Boolean.TRUE)) {
+                return ResponseEntity.badRequest().body("Cannot delete a borrowed book");
+            }
+            bookRepository.delete(bookByIsbn);
+            return ResponseEntity.ok().body("Book deleted");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred while processing delete request");
+        }
+    }
+
+
     //Get a list of all the books in the library
     @GetMapping(path = "/book/all")
     public @ResponseBody Iterable<Book> displayAllBooks() {
@@ -104,7 +142,6 @@ public class LibraryController {
     @PostMapping(path = "/borrow")
     public ResponseEntity<String> borrowBook(@RequestParam(required = false) String isbn, @RequestParam(required = false) String borrowerName) {
 
-        // Add try-catch block to handle errors
         try{
             if (StringUtils.isEmpty(isbn) || StringUtils.isEmpty(borrowerName)) {
                 return ResponseEntity.badRequest().body("Please fill in all necessary information");
@@ -115,27 +152,18 @@ public class LibraryController {
                 return ResponseEntity.badRequest().body("Borrower is not registered in this library.");
             }
 
-            List<Book> bookList = bookRepository.findByIsbn(isbn);
-            if (CollectionUtils.isEmpty(bookList)) {
+            Book bookByIsbn = bookRepository.findByIsbn(isbn);
+            if (bookByIsbn == null) {
                 return ResponseEntity.badRequest().body("Book not found.");
             }
 
-            Book book = null;
-            //Loop to check through borrowed books and obtain book that is not borrowed
-            for (Book eachBook : bookList) {
-                if (eachBook.getBorrowed().equals(Boolean.FALSE)) {
-                    book = eachBook;
-                    break;
-                }
-            }
-
-            if (book == null) {
+            if (bookByIsbn.getBorrowed().equals(Boolean.TRUE)) {
                 return ResponseEntity.badRequest().body("Book has been borrowed");
             }
 
-            book.setBorrowed(Boolean.TRUE);
-            book.setBorrower(borrower);
-            bookRepository.save(book);
+            bookByIsbn.setBorrowed(Boolean.TRUE);
+            bookByIsbn.setBorrower(borrower);
+            bookRepository.save(bookByIsbn);
             return ResponseEntity.ok("Book borrowed successfully.");
 
         } catch (Exception e) {
@@ -157,25 +185,18 @@ public class LibraryController {
                 return ResponseEntity.badRequest().body("Borrower is not registered in this library.");
             }
 
-            List<Book> bookList = bookRepository.findByIsbn(isbn);
-            if (CollectionUtils.isEmpty(bookList)) {
+            Book bookByIsbn = bookRepository.findByIsbn(isbn);
+            if (bookByIsbn == null) {
                 return ResponseEntity.badRequest().body("Book not found.");
             }
 
-            Book book = null;
-            for (Book eachBook : bookList) {
-                if (eachBook.getBorrowed().equals(Boolean.TRUE)) {
-                    book = eachBook;
-                    break;
-                }
-            }
-            if (book == null) {
-                return ResponseEntity.badRequest().body("Unable to return book that is not borrowed.");
+            if (bookByIsbn.getBorrowed().equals(Boolean.FALSE)) {
+                return ResponseEntity.badRequest().body("Book is not currently borrowed.");
             }
 
-            book.setBorrowed(Boolean.FALSE);
-            book.setBorrower(null);
-            bookRepository.save(book);
+            bookByIsbn.setBorrowed(Boolean.FALSE);
+            bookByIsbn.setBorrower(null);
+            bookRepository.save(bookByIsbn);
             return ResponseEntity.ok("Book returned successfully.");
 
         } catch (Exception e) {

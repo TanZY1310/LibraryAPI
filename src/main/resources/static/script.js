@@ -30,7 +30,13 @@ $(document).ready(function() {
     borrowerTable = $('#borrowerTable').DataTable({
         columns: [
             { data: 'name' },
-            { data: 'email' }
+            { data: 'email' },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `<button onclick="deleteBorrower('${row.name}')" title="Delete" class="delete-btn">&#128465;</button>`;
+                }
+            }
         ]
     });
 
@@ -54,12 +60,14 @@ $(document).ready(function() {
             {
                 data: null,
                 render: function(data, type, row) {
+                    let actions = '';
                     if (!row.borrowed) {
-                        return `<button onclick="borrowBook('${row.isbn}')" class="borrow-btn">Borrow</button>`;
+                        actions += `<button onclick="borrowBook('${row.isbn}')" class="borrow-btn">Borrow</button>`;
                     } else if (row.borrower) {
-                        return `<button onclick="returnBook('${row.isbn}', '${row.borrower.name}')" class="return-btn">Return</button>`;
+                        actions += `<button onclick="returnBook('${row.isbn}', '${row.borrower.name}')" class="return-btn">Return</button>`;
                     }
-                    return '-';
+                    actions += ` <button onclick="deleteBook('${row.isbn}')" title="Delete" class="delete-btn">&#128465;</button>`;
+                    return actions;
                 }
             }
         ]
@@ -175,6 +183,21 @@ async function returnBook(isbn, borrowerName) {
     const response = await fetch(`/library/return?isbn=${encodeURIComponent(isbn)}&borrowerName=${encodeURIComponent(borrowerName)}`, {
         method: 'POST'
     });
+    alert(await response.text());
+    displayAllBooks();
+}
+
+async function deleteBorrower(name) {
+    if (!confirm(`Delete borrower "${name}"?`)) return;
+    const response = await fetch(`/library/deleteBorrower?name=${encodeURIComponent(name)}`, { method: 'POST' });
+    alert(await response.text());
+    displayAllBorrowers();
+    displayAllBooks();
+}
+
+async function deleteBook(isbn) {
+    if (!confirm(`Delete book with ISBN "${isbn}"?`)) return;
+    const response = await fetch(`/library/deleteBook?isbn=${encodeURIComponent(isbn)}`, { method: 'POST' });
     alert(await response.text());
     displayAllBooks();
 }
