@@ -140,3 +140,14 @@ table.dataTable {
 .delete-btn:hover {
     color: #FF0000;
 }
+
+.edit-btn {
+    background: none;
+    border: none;
+    color: #0275d8;
+    font-size: 18px;
+    cursor: pointer;
+}
+.edit-btn:hover {
+    color: #025aa5;
+}

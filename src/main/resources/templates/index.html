@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <title>Library Management System</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="/styles.css">
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script defer type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script defer type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <!--    use defer to avoid block parsing-->
-    <script type="text/javascript" src="/script.js"></script>
+    <script defer type="text/javascript" src="/script.js"></script>
 
 </head>
 <body>
@@ -71,14 +72,34 @@
     </div>
 </div>
 
-<div id="borrowModal" class="modal">
+<!--Select borrower pop up window after clicking borrow button-->
+<div id="borrowModal" class="modal" data-modal="borrowModal">
     <div class="modal-content">
         <span class="close">&times;</span>
         <h3>Select Borrower</h3>
+        <label for="borrowerSelect">Choose a borrower from the dropdown list</label>
         <select id="borrowerSelect" class="borrower-select">
             <option value="">Select a borrower...</option>
         </select>
         <button onclick="confirmBorrow()" class="confirm-btn">Confirm</button>
+    </div>
+</div>
+
+<!--Update borrower details pop up window-->
+<div id="updateBorrowerModal" class="modal" data-modal="updateBorrowerModal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Update Borrower Details</h3>
+        <input type="hidden" id="updateBorrowerId">
+        <label for="originalBorrowerName">Current Name:</label>
+        <input type="text" id="originalBorrowerName" disabled>
+        <label for="originalBorrowerEmail">Current Email:</label>
+        <input type="email" id="originalBorrowerEmail" disabled>
+        <label for="updateBorrowerName">New Name:</label>
+        <input type="text" id="updateBorrowerName" required>
+        <label for="updateBorrowerEmail">New Email:</label>
+        <input type="email" id="updateBorrowerEmail" required>
+        <button onclick="updateBorrower()" class="confirm-btn">Update</button>
     </div>
 </div>
 

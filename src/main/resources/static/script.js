@@ -34,7 +34,10 @@ $(document).ready(function() {
             {
                 data: null,
                 render: function(data, type, row) {
-                    return `<button onclick="deleteBorrower('${row.name}')" title="Delete" class="delete-btn">&#128465;</button>`;
+                    let actions = '';
+                    actions += `<button onclick="displayBorrowerUpdateForm('${row.name}')" title="Edit" class="edit-btn"><i class="fa-solid fa-pen-to-square"></i></button>`;
+                    actions += `<button onclick="deleteBorrower('${row.name}')" title="Delete" class="delete-btn"><i class="fa-solid fa-trash"></i></button>`;
+                    return actions;
                 }
             }
         ]
@@ -66,24 +69,12 @@ $(document).ready(function() {
                     } else if (row.borrower) {
                         actions += `<button onclick="returnBook('${row.isbn}', '${row.borrower.name}')" class="return-btn">Return</button>`;
                     }
-                    actions += ` <button onclick="deleteBook('${row.isbn}')" title="Delete" class="delete-btn">&#128465;</button>`;
+                    actions += ` <button onclick="deleteBook('${row.isbn}')" title="Delete" class="delete-btn"><i class="fa-solid fa-trash"></i></button>`;
                     return actions;
                 }
             }
         ]
     });
-
-    // Modal event handlers
-    document.querySelector('.close').onclick = function() {
-        document.getElementById('borrowModal').style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('borrowModal');
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
 
     // Initial load
     displayAllBorrowers();
@@ -94,6 +85,53 @@ async function displayAllBorrowers() {
     const response = await fetch('/library/borrower/all');
     const borrowers = await response.json();
     borrowerTable.clear().rows.add(borrowers).draw();
+}
+
+async function displayBorrowerUpdateForm(name) {
+    try {
+        const response = await fetch(`/library/borrower/get?name=${encodeURIComponent(name)}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch borrower details');
+        }
+        const borrower = await response.json();
+        document.getElementById('originalBorrowerName').value = borrower.name;
+        document.getElementById('originalBorrowerEmail').value = borrower.email;
+        document.getElementById('updateBorrowerModal').style.display = "block";
+    } catch (error) {
+        console.error('Error fetching borrower details:', error);
+        alert('Error loading borrower details');
+    }
+}
+
+async function updateBorrower() {
+
+    const originalName = document.getElementById('originalBorrowerName').value;
+    const originalEmail = document.getElementById('originalBorrowerEmail').value;
+    const newName = document.getElementById('updateBorrowerName').value;
+    const newEmail = document.getElementById('updateBorrowerEmail').value;
+
+    try {
+        const url = `/library/updateBorrower?originalName=${encodeURIComponent(originalName)}&originalEmail=${encodeURIComponent(originalEmail)}&newName=${encodeURIComponent(newName)}&newEmail=${encodeURIComponent(newEmail)}`;
+
+        const response = await fetch(url, {
+          method: 'POST'
+        });
+
+        const result = await response.text();
+
+        if (response.ok) {
+            alert(result);
+            document.getElementById('updateBorrowerModal').style.display = "none";
+            document.getElementById('updateBorrowerName').value = '';
+            document.getElementById('updateBorrowerEmail').value = '';
+            await displayAllBorrowers();
+        } else {
+            alert(result);
+        }
+
+    } catch (error) {
+        alert('Error updating borrower: ' + error.message);
+    }
 }
 
 async function displayAllBooks() {
@@ -154,10 +192,6 @@ async function confirmBorrow() {
             method: 'POST'
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const result = await response.text();
         const modal = document.getElementById('borrowModal');
         modal.style.display = "none";
@@ -165,17 +199,6 @@ async function confirmBorrow() {
         await displayAllBooks();
     } catch (error) {
         alert('Error borrowing book: ' + error.message);
-    }
-}
-
-document.querySelector('.close').onclick = function() {
-    document.getElementById('borrowModal').style.display = "none";
-}
-
-window.onclick = function(event) {
-    const modal = document.getElementById('borrowModal');
-    if (event.target == modal) {
-        modal.style.display = "none";
     }
 }
 
@@ -200,4 +223,19 @@ async function deleteBook(isbn) {
     const response = await fetch(`/library/deleteBook?isbn=${encodeURIComponent(isbn)}`, { method: 'POST' });
     alert(await response.text());
     displayAllBooks();
+}
+
+document.querySelectorAll('.close').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const modal = btn.closest('.modal'); // finds the modal container around the button
+    if (modal) modal.style.display = 'none';
+  });
+});
+
+window.onclick = function(event) {
+    document.querySelectorAll('.modal').forEach(modal => {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    });
 }

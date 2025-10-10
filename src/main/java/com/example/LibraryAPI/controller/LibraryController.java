@@ -58,6 +58,84 @@ public class LibraryController {
         return ResponseEntity.ok().body("New Borrower registered");
     }
 
+    @GetMapping(path="/borrower/get")
+    public ResponseEntity<?> getBorrower(@RequestParam(required = false) String name) {
+        try {
+            Borrower borrower = borrowerRepository.findByName(name);
+            if (borrower == null) {
+                return ResponseEntity.badRequest().body("Borrower not found");
+            }
+            return ResponseEntity.ok().body(borrower);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred while processing get request");
+        }
+    }
+
+    @PostMapping(path="/updateBorrower")
+    public ResponseEntity<String> updateBorrower(@RequestParam(required = false) String originalName, @RequestParam(required = false) String originalEmail,
+                                                 @RequestParam(required = false) String newName, @RequestParam(required = false) String newEmail) {
+        try {
+            Borrower borrower = borrowerRepository.findByName(originalName);
+            if (borrower == null) {
+                return ResponseEntity.badRequest().body("Borrower not found");
+            }
+
+            //If newName or newEmail is empty, do not update that field
+            if (StringUtils.isEmpty(newName) && StringUtils.isEmpty(newEmail)) {
+                return ResponseEntity.badRequest().body("No new information provided for update");
+            }
+
+            if (!StringUtils.isEmpty(newName) && newName.equals(originalName) && !StringUtils.isEmpty(newEmail) && newEmail.equals(originalEmail)) {
+                return ResponseEntity.badRequest().body("No changes detected");
+            }
+
+            //New name or email is found in the system and is not the same borrower
+            if (!StringUtils.isEmpty(newName)) {
+                Borrower borrowerByName = borrowerRepository.findByName(newName);
+                if (borrowerByName != null && !borrowerByName.getEmail().equals(originalEmail)) {
+                    return ResponseEntity.badRequest().body("Name has been used");
+                }
+                borrower.setName(newName);
+            } else if (!StringUtils.isEmpty(newEmail)) {
+                //Email validation
+                Boolean isEmailValid = libraryService.isEmailValid(newEmail);
+                if (!isEmailValid) {
+                    return ResponseEntity.badRequest().body("Email invalid");
+                }
+
+                Borrower borrowerByEmail = borrowerRepository.findByEmail(newEmail);
+                if (borrowerByEmail != null && !borrowerByEmail.getName().equals(originalName)) {
+                    return ResponseEntity.badRequest().body("Email has been used");
+                }
+                borrower.setEmail(newEmail);
+            } else if (!StringUtils.isEmpty(newName) && !StringUtils.isEmpty(newEmail)) {
+                //Email validation
+                Boolean isEmailValid = libraryService.isEmailValid(newEmail);
+                if (!isEmailValid) {
+                    return ResponseEntity.badRequest().body("Email invalid");
+                }
+
+                Borrower borrowerByName = borrowerRepository.findByName(newName);
+                if (borrowerByName != null && !borrowerByName.getEmail().equals(originalEmail)) {
+                    return ResponseEntity.badRequest().body("Name has been used");
+                }
+
+                Borrower borrowerByEmail = borrowerRepository.findByEmail(newEmail);
+                if (borrowerByEmail != null && !borrowerByEmail.getName().equals(originalName)) {
+                    return ResponseEntity.badRequest().body("Email has been used");
+                }
+                borrower.setName(newName);
+                borrower.setEmail(newEmail);
+            }
+
+            borrowerRepository.save(borrower);
+            return ResponseEntity.ok().body("Borrower updated");
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("An error occurred while processing update request");
+        }
+    }
+
     @PostMapping(path="/deleteBorrower")
     public ResponseEntity<String> deleteBorrower(@RequestParam(required = false) String name) {
         try {
