@@ -16,7 +16,7 @@ public class CorsConfig {
                 registry.addMapping("/**")
                     .allowedOrigins(
                         "http://localhost:3000",              // local dev
-                        "https://library-frontend-eosin-nu.vercel.app/"        // production
+                        "https://library-frontend-eosin-nu.vercel.app"        // production
                     )
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                     .allowedHeaders("*");
