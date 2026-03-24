@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     ports:
       - '8080:8080'
@@ -16,6 +16,18 @@ services:
       - 'SPRING_JPA_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect'
     networks:
       - 'springboot-mysql-network'
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:80'
+    depends_on:
+      - app
+    networks:
+      - springboot-mysql-network
+
   mysqldb:
     container_name: 'library-mysql'
     image: 'mysql:8.0.33'

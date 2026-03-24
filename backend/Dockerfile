@@ -1,5 +1,5 @@
-# Use a base image with Java 17
-FROM openjdk:17
+# Use Eclipse Temurin (the recommended OpenJDK replacement)
+FROM eclipse-temurin:17-jdk-alpine
 
 # Copy the JAR package into the image
 ARG JAR_FILE=target/*.jar

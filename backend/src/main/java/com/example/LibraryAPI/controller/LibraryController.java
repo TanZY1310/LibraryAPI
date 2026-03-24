@@ -80,23 +80,14 @@ public class LibraryController {
                 return ResponseEntity.badRequest().body("Borrower not found");
             }
 
-            //If newName or newEmail is empty, do not update that field
-            if (StringUtils.isEmpty(newName) && StringUtils.isEmpty(newEmail)) {
-                return ResponseEntity.badRequest().body("No new information provided for update");
-            }
-
-            if (!StringUtils.isEmpty(newName) && newName.equals(originalName) && !StringUtils.isEmpty(newEmail) && newEmail.equals(originalEmail)) {
-                return ResponseEntity.badRequest().body("No changes detected");
-            }
-
-            //New name or email is found in the system and is not the same borrower
             if (!StringUtils.isEmpty(newName)) {
                 Borrower borrowerByName = borrowerRepository.findByName(newName);
                 if (borrowerByName != null && !borrowerByName.getEmail().equals(originalEmail)) {
                     return ResponseEntity.badRequest().body("Name has been used");
                 }
                 borrower.setName(newName);
-            } else if (!StringUtils.isEmpty(newEmail)) {
+            }
+            if (!StringUtils.isEmpty(newEmail)) {
                 //Email validation
                 Boolean isEmailValid = libraryService.isEmailValid(newEmail);
                 if (!isEmailValid) {
@@ -107,27 +98,8 @@ public class LibraryController {
                 if (borrowerByEmail != null && !borrowerByEmail.getName().equals(originalName)) {
                     return ResponseEntity.badRequest().body("Email has been used");
                 }
-                borrower.setEmail(newEmail);
-            } else if (!StringUtils.isEmpty(newName) && !StringUtils.isEmpty(newEmail)) {
-                //Email validation
-                Boolean isEmailValid = libraryService.isEmailValid(newEmail);
-                if (!isEmailValid) {
-                    return ResponseEntity.badRequest().body("Email invalid");
-                }
-
-                Borrower borrowerByName = borrowerRepository.findByName(newName);
-                if (borrowerByName != null && !borrowerByName.getEmail().equals(originalEmail)) {
-                    return ResponseEntity.badRequest().body("Name has been used");
-                }
-
-                Borrower borrowerByEmail = borrowerRepository.findByEmail(newEmail);
-                if (borrowerByEmail != null && !borrowerByEmail.getName().equals(originalName)) {
-                    return ResponseEntity.badRequest().body("Email has been used");
-                }
-                borrower.setName(newName);
                 borrower.setEmail(newEmail);
             }
-
             borrowerRepository.save(borrower);
             return ResponseEntity.ok().body("Borrower updated");
 
